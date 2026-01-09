@@ -18,7 +18,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
       - name: Set up Docker Buildx
@@ -31,15 +30,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract tag version
-        id: tag
+      - name: Extract current version
+        id: version
         run: |
-          TAG=$(git describe --tags --exact-match ${{ github.event.workflow_run.head_sha }} 2>/dev/null || true)
-          if [ -z "$TAG" ]; then
-            echo "No tag found on commit ${{ github.event.workflow_run.head_sha }}"; exit 1
-          fi
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
           VERSION=${TAG#v}
-          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Extract metadata
         uses: docker/metadata-action@v5
@@ -48,7 +44,7 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest
-            type=raw,value=${{ steps.tag.outputs.tag }}
+            type=raw,value=${{ steps.version.outputs.version }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6

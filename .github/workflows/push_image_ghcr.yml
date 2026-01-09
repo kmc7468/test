@@ -23,7 +23,7 @@ jobs:
 
       - name: Debug checkout SHA
         run: |
-          echo "event head_sha=${{ github.event.workflow_run.head_sha }}"
+          echo "event head_sha=${{ github.event.workflow_run.referenced_workflows.sha }}"
           git rev-parse HEAD
           git branch --show-current
 
